@@ -3,133 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>બંદોબસ્ત પોઈન્ટ સિસ્ટમ</title>
+    <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #eef2f3; padding: 20px; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .box { width: 380px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .excel-box { background: #f0fff4; border: 2px dashed #38a169; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        h2 { text-align: center; color: #2b6cb0; margin-top: 0; }
-        input[type="text"], input[type="tel"], input[type="file"] { width: 90%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 97%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .btn-excel { background: #38a169; }
-        .btn-excel:hover { background: #2f855a; }
-        button:hover { background: #2c5282; }
-        .card { margin-top: 15px; padding: 12px; background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 4px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            color: #1a365d;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            color: #4a5568;
+            font-size: 14px;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+        }
+        input[type="text"]:focus {
+            border-color: #3182ce;
+        }
+        button {
+            padding: 12px;
+            background-color: #0052cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #003e99;
+        }
+        #result {
+            margin-top: 25px;
+            text-align: left;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border-left: 5px solid #0052cc;
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #2d3748;
+        }
+        .result-item strong {
+            color: #1a202c;
+        }
+        .error-message {
+            color: #e53e3e;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <h1 style="text-align: center; color: #1a365d;">👮‍♂️ બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ Devbhumi Dwarka (NNK) </h1>
+<div class="container">
+    <h2>👮‍♂️ બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</h2>
+    <p class="subtitle">Devbhumi Dwarka (NNK)</p>
 
-    <div class="container">
-        <!-- ૧. Excel અપલોડ અને મેન્યુઅલ એન્ટ્રી બોક્સ -->
-        <div class="box">
-            <!-- Excel Section -->
-            <div class="excel-box">
-                <h2 style="color: #2f855a;">📁 Excel ફાઈલ અપલોડ કરો</h2>
-                <input type="file" id="excelFile" accept=".xlsx, .xls">
-                <button onclick="uploadExcel()" class="btn-excel">📤 Excel અપલોડ કરો</button>
-                <div id="excelResult" style="margin-top: 10px;"></div>
-            </div>
-
-            <!-- Single Entry Section -->
-            <h2>➕ એક ડેટા ઉમેરો</h2>
-            <input type="tel" id="addMobile" placeholder="૧૦ આંકડાનો મોબાઈલ નંબર" maxlength="10">
-            <input type="text" id="addName" placeholder="અધિકારી/કર્મચારીનું નામ">
-            <input type="text" id="addRank" placeholder="હોદ્દો (PC, PSI, PI)">
-            <input type="text" id="addPoint" placeholder="પોઈન્ટનું નામ">
-            <input type="text" id="addTime" placeholder="સમય (ઉ.દા. 08:00 AM થી 08:00 PM)">
-            <button onclick="addDuty()">સેવ કરો</button>
-            <div id="addResult" style="margin-top: 10px; text-align: center;"></div>
-        </div>
-
-        <!-- ૨. સર્ચ બોક્સ -->
-        <div class="box">
-            <h2>🔍 બંદોબસ્ત પોઈન્ટ શોધો</h2>
-            <input type="tel" id="checkMobile" placeholder="૧૦ આંકડાનો મોબાઈલ નંબર નાખો" maxlength="10">
-            <button onclick="checkDuty()">શોધો</button>
-            <div id="checkResult"></div>
-        </div>
+    <div class="search-box">
+        <h3>🔍 બંદોબસ્ત પોઈન્ટ શોધો</h3>
+        <input type="text" id="mobileInput" placeholder="૧૦ આંકડાનો મોબાઈલ નંબર નાખો" maxlength="10">
+        <button onclick="searchDuty()">શોધો</button>
     </div>
 
-    <script>
-        async function uploadExcel() {
-            var fileInput = document.getElementById('excelFile');
-            var excelResult = document.getElementById('excelResult');
-            
-            if (!fileInput.files[0]) { 
-                alert("મહેરબાની કરીને Excel ફાઈલ પસંદ કરો!"); 
-                return; 
-            }
+    <div id="result"></div>
+</div>
 
-            excelResult.innerHTML = "<p style='color:blue;'>અપલોડ થઈ રહ્યું છે...</p>";
+<script>
+async function searchDuty() {
+    const mobile = document.getElementById('mobileInput').value.trim();
+    const resultDiv = document.getElementById('result');
 
-            var formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+    if (mobile.length !== 10 || isNaN(mobile)) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<p class="error-message">કૃપા કરીને સાચો ૧૦ આંકડાનો મોબાઈલ નંબર નાખો.</p>';
+        return;
+    }
 
-            try {
-                var res = await fetch('http://127.0.0.1:5000/upload-excel', {
-                    method: 'POST',
-                    body: formData
-                });
-                var result = await res.json();
-                excelResult.innerHTML = "<p style='color:green;'><b>" + result.message + "</b></p>";
-            } catch (err) {
-                excelResult.innerHTML = "<p style='color:red;'><b>અપલોડ કરવામાં ભૂલ આવી! સર્વર ચાલુ છે કે નહીં તે ચેક કરો.</b></p>";
-            }
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<p style="text-align:center;">શોધી રહ્યું છે...</p>';
+
+    try {
+        // Render સર્વરની લાઈવ API લિંક
+        const response = await fetch(https://devbhumidwarkabandhobast-app.onrender.com/search?mobile=${mobile});
+        const data = await response.json();
+
+        if (response.ok && data.name) {
+            resultDiv.innerHTML = `
+                <div class="result-item"><strong>નામ:</strong> ${data.name}</div>
+                <div class="result-item"><strong>હોદ્દો (Rank):</strong> ${data.rank || '-'}</div>
+                <div class="result-item"><strong>પોઈન્ટ:</strong> ${data.point || '-'}</div>
+                <div class="result-item"><strong>સમય (Time):</strong> ${data.time || '-'}</div>
+            `;
+        } else {
+            resultDiv.innerHTML = <p class="error-message">${data.message || 'આ નંબર માટે કોઈ માહિતી મળી નથી.'}</p>;
         }
+    } catch (error) {
+        resultDiv.innerHTML = '<p class="error-message">સર્વર સાથે કનેક્ટ થઈ શક્યું નથી. થોડી વાર પછી પ્રયત્ન કરો.</p>';
+    }
+}
+</script>
 
-        async function addDuty() {
-            var data = {
-                mobile: document.getElementById('addMobile').value,
-                name: document.getElementById('addName').value,
-                rank: document.getElementById('addRank').value,
-                point: document.getElementById('addPoint').value,
-                time_slot: document.getElementById('addTime').value
-            };
-
-            if (data.mobile.length !== 10 || !data.name || !data.point) {
-                alert("કૃપા કરીને બધી વિગતો સાચી ભરો!");
-                return;
-            }
-
-            try {
-                var res = await fetch('http://127.0.0.1:5000/add-duty', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                var result = await res.json();
-                document.getElementById('addResult').innerHTML = "<p style='color:green;'><b>" + result.message + "</b></p>";
-            } catch (err) {
-                alert("સર્વર કનેક્ટ થતું નથી!");
-            }
-        }
-
-        async function checkDuty() {
-            var mobile = document.getElementById('checkMobile').value;
-            var checkResult = document.getElementById('checkResult');
-            
-            if (mobile.length !== 10) { alert("સાચો ૧૦ આંકડાનો નંબર નાખો"); return; }
-
-            try {
-                var res = await fetch('http://127.0.0.1:5000/get-duty/' + mobile);
-                var data = await res.json();
-
-                if (data.found) {
-                    checkResult.innerHTML = '<div class="card">' +
-                        '<p style="margin: 5px 0;"><b>નામ:</b> ' + data.name + ' (' + data.rank + ')</p>' +
-                        '<p style="margin: 5px 0;"><b>પોઈન્ટ:</b> <span style="color:#2b6cb0; font-size:18px;"><b>' + data.point + '</b></span></p>' +
-                        '<p style="margin: 5px 0;"><b>સમય:</b> ' + data.time_slot + '</p>' +
-                    '</div>';
-                } else {
-                    checkResult.innerHTML = '<p style="color:red; margin-top:15px;">' + data.message + '</p>';
-                }
-            } catch (err) {
-                alert("સર્વર સાથે કનેક્શન મળ્યું નથી!");
-            }
-        }
-    </script>
 </body>
 </html>
