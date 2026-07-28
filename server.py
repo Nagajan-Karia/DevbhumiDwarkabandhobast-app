@@ -3,7 +3,7 @@ from flask_cors import CORS
 import sqlite3
 import pandas as pd
 
-app = Flask(_name_)
+app = Flask(__name__)
 CORS(app)
 
 # 1. Database Initialization
@@ -115,5 +115,5 @@ def get_duty():
     else:
         return jsonify({"success": False, "message": "આ નંબરનો કોઈ બંદોબસ્ત મળ્યો નથી!"}), 404
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)
