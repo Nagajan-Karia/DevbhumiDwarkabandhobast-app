@@ -9,6 +9,47 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route('/')
+# Excel File Upload API for Admin
+@app.route('/upload-excel', methods=['POST'])
+def upload_excel():
+    if 'file' not in request.files:
+        return jsonify({"success": False, "message": "કોઈ ફાઈલ મળી નથી!"}), 400
+        
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"success": False, "message": "કોઈ ફાઈલ સિલેક્ટ કરી નથી!"}), 400
+
+    try:
+        # Pandas વડે Excel ફાઈલ રીડ કરો
+        df = pd.read_excel(file)
+        
+        conn = sqlite3.connect('bandhobast.db')
+        cursor = conn.cursor()
+        
+        # જૂનો ડેટા સાફ કરવા માટે (જો નવો જ બંદોબસ્ત અપલોડ કરવો હોય તો)
+        cursor.execute('DELETE FROM duties')
+
+        # Excel ના દરેક રો (Row) ને ડેટાબેઝમાં ઉમેરો
+        for _, row in df.iterrows():
+            cursor.execute('''
+                INSERT INTO duties (mobile, name, rank, point, time_slot)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                str(row['mobile']).strip().split('.')[0], # મોબાઈલ નંબર ટેક્સ્ટ તરીકે
+                str(row['name']),
+                str(row['rank']),
+                str(row['point']),
+                str(row['time_slot'])
+            ))
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "Excel ડેટા સફળતાપૂર્વક અપલોડ થઈ ગયો છે!"})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"ભૂલ આવી: {str(e)}"}), 500
 # Admin Login API
 @app.route('/admin-login', methods=['POST'])
 def admin_login():
