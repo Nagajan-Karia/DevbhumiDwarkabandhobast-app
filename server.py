@@ -26,7 +26,7 @@ def init_db():
 # Server Start થતા જ DB Table બનાવશે
 init_db()
 
-# 2. Home Route (Server Check કરવા માટે)
+# 2. Home Route
 @app.route('/')
 def home():
     return "Server is running successfully!"
@@ -34,7 +34,7 @@ def home():
 # 3. Admin Login Route
 @app.route('/admin-login', methods=['POST'])
 def admin_login():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     username = data.get('username')
     password = data.get('password')
     
@@ -83,10 +83,10 @@ def upload_excel():
     except Exception as e:
         return jsonify({"success": False, "message": f"ભૂલ આવી: {str(e)}"}), 500
 
-# 5. User Duty Search Route (મોબાઈલ નંબરથી સર્ચ)
+# 5. User Duty Search Route
 @app.route('/get-duty', methods=['POST'])
 def get_duty():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     mobile = str(data.get('mobile', '')).strip()
     
     if not mobile:
