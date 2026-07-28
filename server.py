@@ -9,6 +9,18 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route('/')
+# Admin Login API
+@app.route('/admin-login', methods=['POST'])
+def admin_login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    # અહીં તમારો યુઝરનેમ અને પાસવર્ડ સેટ કરો
+    if username == "admin" and password == "NagajanCyber1512":
+        return jsonify({"success": True, "message": "Login successful!"})
+    else:
+        return jsonify({"success": False, "message": "Invalid credentials!"}), 401
 def home():
     return "Server is running successfully!"
 
