@@ -8,6 +8,10 @@ import pandas as pd
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def home():
+    return "Server is running successfully!"
+
 def init_db():
     conn = sqlite3.connect('bandhobast.db')
     cursor = conn.cursor()
