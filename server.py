@@ -1,15 +1,49 @@
-import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 import pandas as pd
 
-
-app = Flask(__name__)
+app = Flask(_name_)
 CORS(app)
 
+# 1. Database Initialization
+def init_db():
+    conn = sqlite3.connect('bandhobast.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS duties (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mobile TEXT,
+            name TEXT,
+            rank TEXT,
+            point TEXT,
+            time_slot TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Server Start થતા જ DB Table બનાવશે
+init_db()
+
+# 2. Home Route (Server Check કરવા માટે)
 @app.route('/')
-# Excel File Upload API for Admin
+def home():
+    return "Server is running successfully!"
+
+# 3. Admin Login Route
+@app.route('/admin-login', methods=['POST'])
+def admin_login():
+    data = request.json or {}
+    username = data.get('username')
+    password = data.get('password')
+    
+    if username == "admin" and password == "admin123":
+        return jsonify({"success": True, "message": "Login successful!"})
+    else:
+        return jsonify({"success": False, "message": "અમાન્ય યુઝરનેમ અથવા પાસવર્ડ!"}), 401
+
+# 4. Admin Excel Upload Route
 @app.route('/upload-excel', methods=['POST'])
 def upload_excel():
     if 'file' not in request.files:
@@ -21,115 +55,65 @@ def upload_excel():
         return jsonify({"success": False, "message": "કોઈ ફાઈલ સિલેક્ટ કરી નથી!"}), 400
 
     try:
-        # Pandas વડે Excel ફાઈલ રીડ કરો
         df = pd.read_excel(file)
-        
         conn = sqlite3.connect('bandhobast.db')
         cursor = conn.cursor()
         
-        # જૂનો ડેટા સાફ કરવા માટે (જો નવો જ બંદોબસ્ત અપલોડ કરવો હોય તો)
+        # જૂનો ડેટા સાફ કરવા માટે
         cursor.execute('DELETE FROM duties')
-
-        # Excel ના દરેક રો (Row) ને ડેટાબેઝમાં ઉમેરો
-        for _, row in df.iterrows():
-            cursor.execute('''
-                INSERT INTO duties (mobile, name, rank, point, time_slot)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (
-                str(row['mobile']).strip().split('.')[0], # મોબાઈલ નંબર ટેક્સ્ટ તરીકે
-                str(row['name']),
-                str(row['rank']),
-                str(row['point']),
-                str(row['time_slot'])
-            ))
-            
-        conn.commit()
-        conn.close()
-        
-        return jsonify({"success": True, "message": "Excel ડેટા સફળતાપૂર્વક અપલોડ થઈ ગયો છે!"})
-        
-    except Exception as e:
-        return jsonify({"success": False, "message": f"ભૂલ આવી: {str(e)}"}), 500
-# Admin Login API
-@app.route('/admin-login', methods=['POST'])
-def admin_login():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    
-    # અહીં તમારો યુઝરનેમ અને પાસવર્ડ સેટ કરો
-    if username == "admin" and password == "NagajanCyber1512":
-        return jsonify({"success": True, "message": "Login successful!"})
-    else:
-        return jsonify({"success": False, "message": "Invalid credentials!"}), 401
-def home():
-    return "Server is running successfully!"
-
-def init_db():
-    conn = sqlite3.connect('bandhobast.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS duties (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mobile TEXT, name TEXT, rank TEXT, point TEXT, time_slot TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-init_db()
-
-@app.route('/add-duty', methods=['POST'])
-def add_duty():
-    data = request.json
-    conn = sqlite3.connect('bandhobast.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO duties (mobile, name, rank, point, time_slot)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (str(data['mobile']), data['name'], data['rank'], data['point'], data['time_slot']))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "બંદોબસ્ત ડ્યુટી સેવ થઈ ગઈ છે!"})
-
-# Excel Upload API
-@app.route('/upload-excel', methods=['POST'])
-def upload_excel():
-    if 'file' not in request.files:
-        return jsonify({"message": "કોઈ ફાઈલ મળી નથી!"}), 400
-    
-    file = request.files['file']
-    try:
-        df = pd.read_excel(file)
-        conn = sqlite3.connect('bandhobast.db')
-        cursor = conn.cursor()
         
         count = 0
         for _, row in df.iterrows():
             cursor.execute('''
                 INSERT INTO duties (mobile, name, rank, point, time_slot)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (str(row['mobile']), str(row['name']), str(row['rank']), str(row['point']), str(row['time_slot'])))
+            ''', (
+                str(row['mobile']).split('.')[0].strip(),
+                str(row['name']).strip(),
+                str(row['rank']).strip(),
+                str(row['point']).strip(),
+                str(row['time_slot']).strip()
+            ))
             count += 1
             
         conn.commit()
         conn.close()
-        return jsonify({"message": f"સફળતાપૂર્વક {count} લોકોનો ડેટા ઉમેરાઈ ગયો!"})
+        return jsonify({"success": True, "message": f"સફળતાપૂર્વક {count} લોકોનો ડેટા ઉમેરાઈ ગયો છે!"})
+        
     except Exception as e:
-        return jsonify({"message": "Excel ફાઈલ અપલોડ કરવામાં ભૂલ આવી. કોલમના નામ યોગ્ય છે કે નહીં તે ચેક કરો."}), 500
+        return jsonify({"success": False, "message": f"ભૂલ આવી: {str(e)}"}), 500
 
-@app.route('/get-duty/<mobile_no>', methods=['GET'])
-def get_duty(mobile_no):
+# 5. User Duty Search Route (મોબાઈલ નંબરથી સર્ચ)
+@app.route('/get-duty', methods=['POST'])
+def get_duty():
+    data = request.json or {}
+    mobile = str(data.get('mobile', '')).strip()
+    
+    if not mobile:
+        return jsonify({"success": False, "message": "મોબાઈલ નંબર જરૂરી છે!"}), 400
+        
     conn = sqlite3.connect('bandhobast.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT name, rank, point, time_slot FROM duties WHERE mobile = ?', (str(mobile_no),))
-    row = cursor.fetchone()
+    
+    cursor.execute('''
+        SELECT name, rank, point, time_slot FROM duties WHERE mobile = ?
+    ''', (mobile,))
+    
+    result = cursor.fetchone()
     conn.close()
+    
+    if result:
+        return jsonify({
+            "success": True,
+            "data": {
+                "name": result[0],
+                "rank": result[1],
+                "point": result[2],
+                "time_slot": result[3]
+            }
+        })
+    else:
+        return jsonify({"success": False, "message": "આ નંબરનો કોઈ બંદોબસ્ત મળ્યો નથી!"}), 404
 
-    if row:
-        return jsonify({"found": True, "name": row[0], "rank": row[1], "point": row[2], "time_slot": row[3]})
-    return jsonify({"found": False, "message": "આ નંબર પર કોઈ બંદોબસ્ત પોઈન્ટ મળ્યો નથી."})
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+if _name_ == '_main_':
+    app.run(debug=True)
