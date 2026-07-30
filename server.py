@@ -1,119 +1,55 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sqlite3
 import pandas as pd
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(_name_)
+CORS(app)  # બ્રાઉઝર/એપમાંથી રિક્વેસ્ટ એલો કરવા માટે
 
-# 1. Database Initialization
-def init_db():
-    conn = sqlite3.connect('bandhobast.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS duties (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mobile TEXT,
-            name TEXT,
-            rank TEXT,
-            point TEXT,
-            time_slot TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# તમારી લાઈવ Google Sheet ની CSV લિંક
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/pub?output=csv"
 
-# Server Start થતા જ DB Table બનાવશે
-init_db()
+def get_sheet_data():
+    try:
+        # ગૂગલ શીટમાંથી સીધો ડેટા રીડ કરશે
+        df = pd.read_csv(SHEET_URL)
+        df = df.fillna('')  # ખાલી ખાનાઓને ખાલી સ્ટ્રિંગમાં બદલશે
+        
+        # કોલમના નામમાં આજુબાજુની સ્પેસ દૂર કરશે
+        df.columns = df.columns.str.strip()
+        
+        # ડેટામાં દરેક વેલ્યુને ટેક્સ્ટ (String) ફોર્મેટમાં કન્વર્ટ કરશે જેથી સર્ચ સરળ બને
+        return df.astype(str).to_dict(orient='records')
+    except Exception as e:
+        print("Error fetching Google Sheet data:", e)
+        return []
 
-# 2. Home Route
 @app.route('/')
 def home():
-    return "Server is running successfully!"
+    return "Bandhobast API is Running!"
 
-# 3. Admin Login Route
-@app.route('/admin-login', methods=['POST'])
-def admin_login():
-    data = request.get_json(silent=True) or {}
-    username = data.get('username')
-    password = data.get('password')
-    
-    if username == "admin" and password == "admin123":
-        return jsonify({"success": True, "message": "Login successful!"})
-    else:
-        return jsonify({"success": False, "message": "અમાન્ય યુઝરનેમ અથવા પાસવર્ડ!"}), 401
+@app.route('/get_data', methods=['GET'])
+def get_all_data():
+    # આખો ડેટા આપશે
+    data = get_sheet_data()
+    return jsonify(data)
 
-# 4. Admin Excel Upload Route
-@app.route('/upload-excel', methods=['POST'])
-def upload_excel():
-    if 'file' not in request.files:
-        return jsonify({"success": False, "message": "કોઈ ફાઈલ મળી નથી!"}), 400
-        
-    file = request.files['file']
+@app.route('/search', methods=['GET'])
+def search_data():
+    query = request.args.get('q', '').strip().lower()
+    data = get_sheet_data()
     
-    if file.filename == '':
-        return jsonify({"success": False, "message": "કોઈ ફાઈલ સિલેક્ટ કરી નથી!"}), 400
+    if not query:
+        return jsonify(data)
+    
+    # કોઈપણ કોલમમાં (મોબાઈલ નંબર, નામ, હોદ્દો વગેરે) સર્ચ શબ્દ આવે તો રિઝલ્ટ આપશે
+    filtered = []
+    for row in data:
+        for val in row.values():
+            if query in str(val).lower():
+                filtered.append(row)
+                break
+                
+    return jsonify(filtered)
 
-    try:
-        df = pd.read_excel(file)
-        conn = sqlite3.connect('bandhobast.db')
-        cursor = conn.cursor()
-        
-        # જૂનો ડેટા સાફ કરવા માટે
-        cursor.execute('DELETE FROM duties')
-        
-        count = 0
-        for _, row in df.iterrows():
-            cursor.execute('''
-                INSERT INTO duties (mobile, name, rank, point, time_slot)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (
-                str(row['mobile']).split('.')[0].strip(),
-                str(row['name']).strip(),
-                str(row['rank']).strip(),
-                str(row['point']).strip(),
-                str(row['time_slot']).strip()
-            ))
-            count += 1
-            
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True, "message": f"સફળતાપૂર્વક {count} લોકોનો ડેટા ઉમેરાઈ ગયો છે!"})
-        
-    except Exception as e:
-        return jsonify({"success": False, "message": f"ભૂલ આવી: {str(e)}"}), 500
-
-# 5. User Duty Search Route
-@app.route('/get-duty', methods=['POST'])
-def get_duty():
-    data = request.get_json(silent=True) or {}
-    mobile = str(data.get('mobile', '')).strip()
-    
-    if not mobile:
-        return jsonify({"success": False, "message": "મોબાઈલ નંબર જરૂરી છે!"}), 400
-        
-    conn = sqlite3.connect('bandhobast.db')
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT name, rank, point, time_slot FROM duties WHERE mobile = ?
-    ''', (mobile,))
-    
-    result = cursor.fetchone()
-    conn.close()
-    
-    if result:
-        return jsonify({
-            "success": True,
-            "data": {
-                "name": result[0],
-                "rank": result[1],
-                "point": result[2],
-                "time_slot": result[3]
-            }
-        })
-    else:
-        return jsonify({"success": False, "message": "આ નંબરનો કોઈ બંદોબસ્ત મળ્યો નથી!"}), 404
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if _name_ == '_main_':
+    app.run(host='0.0.0.0', port=5000, debug=True)
