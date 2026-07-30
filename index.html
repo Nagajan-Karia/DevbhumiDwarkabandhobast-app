@@ -1,22 +1,100 @@
-<!-- head ટેગની અંદર આ લિંક મૂકવી -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</title>
+    <!-- PapaParse Library for Google Sheet CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background-color: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); text-align: center; }
+        h2 { font-size: 20px; margin-bottom: 5px; color: #e0e0e0; }
+        p.subtitle { font-size: 14px; color: #a0a0a0; margin-top: 0; margin-bottom: 25px; }
+        .search-box { margin-bottom: 20px; }
+        label { display: block; font-size: 16px; font-weight: bold; margin-bottom: 12px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; outline: none; text-align: center; }
+        input:focus { border-color: #0d6efd; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #0056b3; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: 0.2s; }
+        button:hover { background-color: #004085; }
+        #loading { margin-top: 15px; color: #ffc107; font-size: 14px; display: none; }
+        #results { margin-top: 20px; text-align: left; max-height: 300px; overflow-y: auto; }
+        .result-item { background: #2c2c2c; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #0d6efd; font-size: 14px; }
+        .result-item p { margin: 4px 0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>👮‍♂️ બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</h2>
+    <p class="subtitle">Devbhumi Dwarka (NNK)</p>
+
+    <div class="search-box">
+        <label>🔍 બંદોબસ્ત પોઈન્ટ શોધો</label>
+        <input type="text" id="searchInput" placeholder="મોબાઈલ નંબર અથવા નામ લખો...">
+        <button onclick="searchData()">શોધો</button>
+    </div>
+
+    <div id="loading">ગૂગલ શીટમાંથી ડેટા લોડ થઈ રહ્યો છે...</div>
+    <div id="results"></div>
+</div>
 
 <script>
-  const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/pub?output=csv";
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/pub?output=csv";
+    let bandhobastData = [];
 
-  // આ ફંકશન ગૂગલ શીટમાંથી સીધો ડેટા લોડ કરશે
-  function loadBandhobastData() {
-      Papa.parse(sheetURL, {
-          download: true,
-          header: true,
-          complete: function(results) {
-              const data = results.data;
-              console.log("લાઈવ ડેટા મળી ગયો:", data);
-              // અહીં તમારો સર્ચ કરવાનો કોડ ચલાવો
-          }
-      });
-  }
+    // ડેટા ફેચ કરો
+    function loadSheetData() {
+        document.getElementById('loading').style.display = 'block';
+        Papa.parse(sheetURL, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                bandhobastData = results.data;
+                document.getElementById('loading').style.display = 'none';
+            },
+            error: function(err) {
+                document.getElementById('loading').innerText = "ડેટા લોડ કરવામાં ભૂલ થઈ!";
+            }
+        });
+    }
 
-  // પેજ ઓપન થતાં જ ડેટા લોડ થઈ જશે
-  window.onload = loadBandhobastData;
+    // સર્ચ ફંકશન
+    function searchData() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+
+        if (!query) {
+            resultsDiv.innerHTML = '<p style="color:#ff6b6b; text-align:center;">કૃપા કરીને નંબર કે નામ લખો!</p>';
+            return;
+        }
+
+        const filtered = bandhobastData.filter(row => {
+            return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+        });
+
+        if (filtered.length === 0) {
+            resultsDiv.innerHTML = '<p style="color:#ff6b6b; text-align:center;">કોઈ રેકોર્ડ મળ્યો નથી!</p>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            let itemHtml = '<div class="result-item">';
+            for (const [key, value] of Object.entries(item)) {
+                if(key && value) {
+                    itemHtml += <p><strong>${key}:</strong> ${value}</p>;
+                }
+            }
+            itemHtml += '</div>';
+            resultsDiv.innerHTML += itemHtml;
+        });
+    }
+
+    // પેજ લોડ થાય ત્યારે ડેટા ડાઉનલોડ કરી લેશે
+    window.onload = loadSheetData;
 </script>
+
+</body>
+</html>
