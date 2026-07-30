@@ -38,35 +38,27 @@
 </div>
 
 <script>
-    // ગૂગલ શીટ GViz API લિંક (CORS Block વગર સીધો ડેટા આપે છે)
-    const gvizURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/gviz/tq?tqx=out:json";
+    // ⚠️ આ અવતરણ ચિહ્નો (" ") ની વચ્ચે તમારી Apps Script લિંક મૂકો:
+    const scriptURL = "તમારી_WEB_APP_URL_અહીં_મૂકો"; 
 
+    let headers = [];
     let bandhobastData = [];
 
     async function loadSheetData() {
         const statusDiv = document.getElementById('status');
         try {
-            const response = await fetch(gvizURL);
-            const text = await response.text();
+            const response = await fetch(scriptURL, { redirect: "follow" });
+            const data = await response.json();
             
-            // Google ના જવાબમાંથી JSON ડેટા અલગ કરવો
-            const jsonString = text.substring(47, text.length - 2);
-            const json = JSON.parse(jsonString);
-            
-            const cols = json.table.cols.map(c => c ? c.label : '');
-            const rows = json.table.rows;
-
-            bandhobastData = rows.map(r => {
-                let rowObj = {};
-                r.c.forEach((cell, idx) => {
-                    const header = cols[idx] || Column ${idx + 1};
-                    rowObj[header] = cell ? (cell.v !== null ? String(cell.v) : '') : '';
-                });
-                return rowObj;
-            });
-
-            statusDiv.style.color = '#28a745';
-            statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
+            if (data && data.length > 0) {
+                headers = data[0]; 
+                bandhobastData = data.slice(1); 
+                statusDiv.style.color = '#28a745';
+                statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
+            } else {
+                statusDiv.style.color = '#dc3545';
+                statusDiv.innerText = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
+            }
         } catch (error) {
             console.error(error);
             statusDiv.style.color = '#dc3545';
@@ -85,7 +77,7 @@
         }
 
         const filtered = bandhobastData.filter(row => {
-            return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+            return row.some(cell => String(cell).toLowerCase().includes(query));
         });
 
         if (filtered.length === 0) {
@@ -93,13 +85,14 @@
             return;
         }
 
-        filtered.forEach(item => {
+        filtered.forEach(row => {
             let itemHtml = '<div class="result-item">';
-            for (const [key, value] of Object.entries(item)) {
-                if(key && value && value.trim() !== '') {
-                    itemHtml += <p><strong>${key}:</strong> ${value}</p>;
+            row.forEach((cell, index) => {
+                if (cell !== undefined && cell !== null && String(cell).trim() !== '') {
+                    const headerName = headers[index] || Field ${index + 1};
+                    itemHtml += <p><strong>${headerName}:</strong> ${cell}</p>;
                 }
-            }
+            });
             itemHtml += '</div>';
             resultsDiv.innerHTML += itemHtml;
         });
