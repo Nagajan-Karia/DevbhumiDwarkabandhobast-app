@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</title>
+    <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ Devbhumi Dwarka (N.N.K.)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background-color: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); text-align: center; }
@@ -38,37 +38,39 @@
 </div>
 
 <script>
-    // ⚠️ આ અવતરણ ચિહ્નો (" ") ની વચ્ચે તમારી Apps Script લિંક મૂકો:
+    // ⚠️ આ બે ઇન્વર્ટેડ કોમા વચ્ચે તમારી Apps Script લિંક પેસ્ટ કરો:
     const scriptURL = "https://script.google.com/macros/s/AKfycbwth9WHHpIZNorRAkRUk7oPpzAyuuC0tZQpH3fIGRJcmz8a0nIrCLs1vn88a1M7_YFc/exec"; 
 
-    let headers = [];
-    let bandhobastData = [];
+    var headers = [];
+    var bandhobastData = [];
 
-    async function loadSheetData() {
-        const statusDiv = document.getElementById('status');
-        try {
-            const response = await fetch(scriptURL, { redirect: "follow" });
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                headers = data[0]; 
-                bandhobastData = data.slice(1); 
-                statusDiv.style.color = '#28a745';
-                statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
-            } else {
+    function loadSheetData() {
+        var statusDiv = document.getElementById('status');
+        fetch(scriptURL, { redirect: "follow" })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data && data.length > 0) {
+                    headers = data[0]; 
+                    bandhobastData = data.slice(1); 
+                    statusDiv.style.color = '#28a745';
+                    statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
+                } else {
+                    statusDiv.style.color = '#dc3545';
+                    statusDiv.innerText = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
+                }
+            })
+            .catch(function(error) {
+                console.error(error);
                 statusDiv.style.color = '#dc3545';
-                statusDiv.innerText = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
-            }
-        } catch (error) {
-            console.error(error);
-            statusDiv.style.color = '#dc3545';
-            statusDiv.innerText = "❌ ડેટા લોડ કરવામાં ભૂલ થઈ!";
-        }
+                statusDiv.innerText = "❌ ડેટા લોડ કરવામાં ભૂલ થઈ!";
+            });
     }
 
     function searchData() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        const resultsDiv = document.getElementById('results');
+        var query = document.getElementById('searchInput').value.trim().toLowerCase();
+        var resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '';
 
         if (!query) {
@@ -76,8 +78,10 @@
             return;
         }
 
-        const filtered = bandhobastData.filter(row => {
-            return row.some(cell => String(cell).toLowerCase().includes(query));
+        var filtered = bandhobastData.filter(function(row) {
+            return row.some(function(cell) {
+                return String(cell).toLowerCase().indexOf(query) !== -1;
+            });
         });
 
         if (filtered.length === 0) {
@@ -85,12 +89,12 @@
             return;
         }
 
-        filtered.forEach(row => {
-            let itemHtml = '<div class="result-item">';
-            row.forEach((cell, index) => {
+        filtered.forEach(function(row) {
+            var itemHtml = '<div class="result-item">';
+            row.forEach(function(cell, index) {
                 if (cell !== undefined && cell !== null && String(cell).trim() !== '') {
-                    const headerName = headers[index] || Field ${index + 1};
-                    itemHtml += <p><strong>${headerName}:</strong> ${cell}</p>;
+                    var headerName = headers[index] || ('Field ' + (index + 1));
+                    itemHtml += '<p><strong>' + headerName + ':</strong> ' + cell + '</p>';
                 }
             });
             itemHtml += '</div>';
