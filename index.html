@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .card { background-color: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); text-align: center; }
@@ -39,35 +38,40 @@
 </div>
 
 <script>
-    // ગૂગલ શીટ CSV લિંક + પ્રોક્સી બાયપાસ
-    const rawSheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/pub?output=csv";
-    const sheetURL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawSheetURL);
+    // ગૂગલ શીટ GViz API લિંક (CORS Block વગર સીધો ડેટા આપે છે)
+    const gvizURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUCXaVt5EJyWIGT4ABCsNwd_bkZfO8c5wWedJO9dV6EMdQ3xfXuMvdINP0zBx_fU5i-lkepLTzyWw/gviz/tq?tqx=out:json";
 
     let bandhobastData = [];
 
-    function loadSheetData() {
+    async function loadSheetData() {
         const statusDiv = document.getElementById('status');
-        
-        Papa.parse(sheetURL, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                if(results.data && results.data.length > 0) {
-                    bandhobastData = results.data;
-                    statusDiv.style.color = '#28a745';
-                    statusDiv.innerText = "✅ ડેટા રેડી છે! હવે સર્ચ કરો.";
-                } else {
-                    statusDiv.style.color = '#dc3545';
-                    statusDiv.innerText = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
-                }
-            },
-            error: function(err) {
-                console.error(err);
-                statusDiv.style.color = '#dc3545';
-                statusDiv.innerText = "❌ ડેટા કનેક્ટ થવામાં સમસ્યા છે!";
-            }
-        });
+        try {
+            const response = await fetch(gvizURL);
+            const text = await response.text();
+            
+            // Google ના જવાબમાંથી JSON ડેટા અલગ કરવો
+            const jsonString = text.substring(47, text.length - 2);
+            const json = JSON.parse(jsonString);
+            
+            const cols = json.table.cols.map(c => c ? c.label : '');
+            const rows = json.table.rows;
+
+            bandhobastData = rows.map(r => {
+                let rowObj = {};
+                r.c.forEach((cell, idx) => {
+                    const header = cols[idx] || Column ${idx + 1};
+                    rowObj[header] = cell ? (cell.v !== null ? String(cell.v) : '') : '';
+                });
+                return rowObj;
+            });
+
+            statusDiv.style.color = '#28a745';
+            statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
+        } catch (error) {
+            console.error(error);
+            statusDiv.style.color = '#dc3545';
+            statusDiv.innerText = "❌ ડેટા લોડ કરવામાં ભૂલ થઈ!";
+        }
     }
 
     function searchData() {
@@ -92,7 +96,7 @@
         filtered.forEach(item => {
             let itemHtml = '<div class="result-item">';
             for (const [key, value] of Object.entries(item)) {
-                if(key && value) {
+                if(key && value && value.trim() !== '') {
                     itemHtml += <p><strong>${key}:</strong> ${value}</p>;
                 }
             }
