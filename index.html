@@ -37,19 +37,18 @@
 </div>
 
 <script>
-  // સાચી URL (Small 'https' સાથે)
-  const API_URL = "https://script.google.com/macros/s/AKfycbw75KMbwhCnsJcfDieWOj_wFx3XvzN8bp2jwUD_TdzfEj66DDXotOUpY6_VRdrLyao2/exec";
+  var API_URL = "https://script.google.com/macros/s/AKfycbxawwzka9MiWfYN_SMWizMxZAp6II3wjLQ4A7NdY2lQM0GpyS4P-m4XbPVtNJvgvN0m/exec";
 
   function cleanText(text) {
-    if (text === null || text === undefined) return "";
-    return text.toString().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!text) return "";
+    return String(text).toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
-  async function searchData() {
-    const rawInput = document.getElementById("searchInput").value;
-    const inputClean = cleanText(rawInput);
-    const statusMsg = document.getElementById("statusMsg");
-    const resultBox = document.getElementById("resultBox");
+  function searchData() {
+    var rawInput = document.getElementById("searchInput").value;
+    var inputClean = cleanText(rawInput);
+    var statusMsg = document.getElementById("statusMsg");
+    var resultBox = document.getElementById("resultBox");
 
     if (!inputClean) {
       alert("મહેરબાની કરીને નામ અથવા નંબર દાખલ કરો!");
@@ -60,53 +59,54 @@
     statusMsg.innerHTML = "⏳ શોધી રહ્યું છે...";
     resultBox.style.display = "none";
 
-    try {
-      const response = await fetch(API_URL);
-      const result = await response.json();
+    fetch(API_URL)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(result) {
+        if (result.status === "success" && result.data && result.data.length > 1) {
+          var rows = result.data;
+          var headers = rows[0];
+          var found = false;
 
-      if (result.status === "success" && result.data && result.data.length > 1) {
-        const rows = result.data;
-        const headers = rows[0];
-        let found = false;
+          resultBox.innerHTML = "";
 
-        resultBox.innerHTML = "";
+          for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
+            var rowClean = row.map(function(cell) { return cleanText(cell); }).join(" ");
 
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          const rowClean = row.map(cell => cleanText(cell)).join(" ");
+            if (rowClean.indexOf(inputClean) !== -1) {
+              found = true;
+              var html = "<h4 style='margin-top:0; color:#0d6efd;'>✅ વિગત મળી:</h4>";
+              
+              headers.forEach(function(header, idx) {
+                if (row[idx] !== undefined && row[idx] !== "") {
+                  html += "<div class='result-item'><strong>" + header + ":</strong> " + row[idx] + "</div>";
+                }
+              });
 
-          if (rowClean.includes(inputClean)) {
-            found = true;
-            let html = "<h4 style='margin-top:0; color:#0d6efd;'>✅ વિગત મળી:</h4>";
-            
-            headers.forEach((header, idx) => {
-              if (row[idx] !== undefined && row[idx] !== "") {
-                html += <div class="result-item"><strong>${header}:</strong> ${row[idx]}</div>;
-              }
-            });
-
-            resultBox.innerHTML += html + "<hr style='border-color:#444; margin:15px 0;'>";
+              resultBox.innerHTML += html + "<hr style='border-color:#444; margin:15px 0;'>";
+            }
           }
-        }
 
-        if (found) {
-          statusMsg.innerHTML = "";
-          resultBox.style.display = "block";
+          if (found) {
+            statusMsg.innerHTML = "";
+            resultBox.style.display = "block";
+          } else {
+            statusMsg.style.color = "#ff4d4d";
+            statusMsg.innerHTML = "❌ આ નંબર અથવા નામનો કોઈ બંદોબસ્ત મળ્યો નથી!";
+          }
+
         } else {
           statusMsg.style.color = "#ff4d4d";
-          statusMsg.innerHTML = "❌ આ નંબર અથવા નામનો કોઈ બંદોબસ્ત મળ્યો નથી!";
+          statusMsg.innerHTML = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
         }
-
-      } else {
+      })
+      .catch(function(error) {
+        console.error(error);
         statusMsg.style.color = "#ff4d4d";
-        statusMsg.innerHTML = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
-      }
-
-    } catch (error) {
-      console.error(error);
-      statusMsg.style.color = "#ff4d4d";
-      statusMsg.innerHTML = "❌ કનેક્શન એરર! કૃપા કરીને Apps Script ની URL ચકાસો.";
-    }
+        statusMsg.innerHTML = "❌ કનેક્શન એરર! કૃપા કરીને Apps Script ની URL ચકાસો.";
+      });
   }
 </script>
 
