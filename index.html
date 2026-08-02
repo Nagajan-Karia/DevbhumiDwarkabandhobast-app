@@ -28,7 +28,7 @@
   <div class="search-box">
     <label style="display:block; margin-bottom: 8px; font-weight: bold;">🔍 બંદોબસ્ત પોઈન્ટ શોધો</label>
     <input type="text" id="searchInput" placeholder="મોબાઈલ નંબર અથવા નામ લખો...">
-    <button onclick="searchData()">શોધો</button>
+    <button type="button" onclick="searchData()">શોધો</button>
   </div>
 
   <div id="statusMsg"></div>
@@ -37,10 +37,9 @@
 </div>
 
 <script>
-  // તમારી નવી અપડેટ કરેલી Google Apps Script Web App URL
-  const API_URL = "https://script.google.com/macros/s/AKfycbwcR1NZ48uV4yEr3P3LsgTzrqs95Z9brTnsELOMuIzSGtGz4Lk-LwKE91vGjAdVUKrq/exec";
+  // તમારી ન્યુલી અપડેટ કરેલી Web App URL
+  const API_URL = "https://script.google.com/macros/s/AKfycbw75KMbwhCnsJcfDieWOj_wFx3XvzN8bp2jwUD_TdzfEj66DDXotOUpY6_VRdrLyao2/exec";
 
-  // નંબર કે નામના સ્પેસ અને સ્પેશિયલ કેરેક્ટર દૂર કરીને પર્ફેક્ટ સર્ચ કરશે
   function cleanText(text) {
     if (text === null || text === undefined) return "";
     return text.toString().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -72,11 +71,8 @@
 
         resultBox.innerHTML = "";
 
-        // બધી જ રો માં સર્ચ કરશે
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
-          
-          // રો માં રહેલા દરેક સેલનો ડેટા ભેગો કરીને સરખાવશે
           const rowClean = row.map(cell => cleanText(cell)).join(" ");
 
           if (rowClean.includes(inputClean)) {
