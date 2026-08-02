@@ -10,12 +10,12 @@
     h2 { font-size: 20px; margin-bottom: 5px; color: #ffffff; }
     p.subtitle { color: #a0a0a0; font-size: 14px; margin-top: 0; margin-bottom: 20px; }
     .search-box { margin-bottom: 15px; }
-    input[type="text"] { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; text-align: center; }
+    input[type="text"] { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; text-align: center; outline: none; }
     button { width: 100%; padding: 12px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
     button:hover { background: #0b5ed7; }
     #statusMsg { margin-top: 15px; font-weight: bold; font-size: 14px; }
     .result-box { margin-top: 20px; text-align: left; background: #2a2a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #0d6efd; display: none; }
-    .result-item { margin-bottom: 8px; font-size: 15px; }
+    .result-item { margin-bottom: 8px; font-size: 15px; line-height: 1.4; }
     .result-item strong { color: #a0a0a0; }
   </style>
 </head>
@@ -37,15 +37,22 @@
 </div>
 
 <script>
-  // ⚠️ અહીં તમારી સ્ટેપ-૨ માંથી મળેલી નવી Web App URL પેસ્ટ કરો
-  const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSo-q59RwQFYKuSs6iy_gb_VIX9QIiMjbdt69VTEPsWvNwA_kCUll8jRB-2MErDBK0lac-F8z1tnDPYcvrzo35NPKRqZH9WzWfJlqP4Wxt4MRaotr9rXGsgBb4fBqGU3bJZzPR4VVOIR6oXk7ShmnTnHq6wYhi4JRLZVlg0kmSzrEj8_3qRy1vz3TZO2vMA092Kwops2uKV0ZtjrBa78urNtxl_EEg206XQx4CGqnd74kywYq89y08jsnKgia9nLryFD4AzEbCbxCcZE_P4kLYsBJpqjw&lib=MTt7q_-3I8_krf2JQBP4NHEtTjVl5hDT4";
+  // તમારી નવી અપડેટ કરેલી Google Apps Script Web App URL
+  const API_URL = "Https://script.google.com/macros/s/AKfycbw75KMbwhCnsJcfDieWOj_wFx3XvzN8bp2jwUD_TdzfEj66DDXotOUpY6_VRdrLyao2/exec";
+
+  // નંબર કે નામના સ્પેસ અને સ્પેશિયલ કેરેક્ટર દૂર કરીને પર્ફેક્ટ સર્ચ કરશે
+  function cleanText(text) {
+    if (text === null || text === undefined) return "";
+    return text.toString().toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
 
   async function searchData() {
-    const input = document.getElementById("searchInput").value.trim().toLowerCase();
+    const rawInput = document.getElementById("searchInput").value;
+    const inputClean = cleanText(rawInput);
     const statusMsg = document.getElementById("statusMsg");
     const resultBox = document.getElementById("resultBox");
 
-    if (!input) {
+    if (!inputClean) {
       alert("મહેરબાની કરીને નામ અથવા નંબર દાખલ કરો!");
       return;
     }
@@ -65,17 +72,19 @@
 
         resultBox.innerHTML = "";
 
-        // બધી જ રો સર્ચ કરશે
+        // બધી જ રો માં સર્ચ કરશે
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
-          const rowText = row.join(" ").toLowerCase();
+          
+          // રો માં રહેલા દરેક સેલનો ડેટા ભેગો કરીને સરખાવશે
+          const rowClean = row.map(cell => cleanText(cell)).join(" ");
 
-          if (rowText.includes(input)) {
+          if (rowClean.includes(inputClean)) {
             found = true;
             let html = "<h4 style='margin-top:0; color:#0d6efd;'>✅ વિગત મળી:</h4>";
             
             headers.forEach((header, idx) => {
-              if(row[idx] !== undefined && row[idx] !== "") {
+              if (row[idx] !== undefined && row[idx] !== "") {
                 html += <div class="result-item"><strong>${header}:</strong> ${row[idx]}</div>;
               }
             });
@@ -89,12 +98,12 @@
           resultBox.style.display = "block";
         } else {
           statusMsg.style.color = "#ff4d4d";
-          statusMsg.innerHTML = "❌ કોઈ રેકોર્ડ મળ્યો નથી!";
+          statusMsg.innerHTML = "❌ આ નંબર અથવા નામનો કોઈ બંદોબસ્ત મળ્યો નથી!";
         }
 
       } else {
         statusMsg.style.color = "#ff4d4d";
-        statusMsg.innerHTML = "❌ શીટમાં ડેટા મળ્યો નથી અથવા શીટ ખાલી છે!";
+        statusMsg.innerHTML = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
       }
 
     } catch (error) {
