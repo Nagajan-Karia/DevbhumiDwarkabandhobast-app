@@ -1,108 +1,108 @@
 <!DOCTYPE html>
 <html lang="gu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ Devbhumi Dwarka (N.N.K.)</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background-color: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); text-align: center; }
-        h2 { font-size: 20px; margin-bottom: 5px; color: #e0e0e0; }
-        p.subtitle { font-size: 14px; color: #a0a0a0; margin-top: 0; margin-bottom: 25px; }
-        .search-box { margin-bottom: 20px; }
-        label { display: block; font-size: 16px; font-weight: bold; margin-bottom: 12px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background-color: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; outline: none; text-align: center; }
-        input:focus { border-color: #0d6efd; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #0056b3; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: 0.2s; }
-        button:hover { background-color: #004085; }
-        #status { margin-top: 15px; color: #ffc107; font-size: 14px; font-weight: bold; }
-        #results { margin-top: 20px; text-align: left; max-height: 350px; overflow-y: auto; }
-        .result-item { background: #2c2c2c; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #0d6efd; font-size: 14px; }
-        .result-item p { margin: 4px 0; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #1e1e1e; border-radius: 12px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); text-align: center; }
+    h2 { font-size: 20px; margin-bottom: 5px; color: #ffffff; }
+    p.subtitle { color: #a0a0a0; font-size: 14px; margin-top: 0; margin-bottom: 20px; }
+    .search-box { margin-bottom: 15px; }
+    input[type="text"] { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 8px; background: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; text-align: center; }
+    button { width: 100%; padding: 12px; background: #0d6efd; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    button:hover { background: #0b5ed7; }
+    #statusMsg { margin-top: 15px; font-weight: bold; font-size: 14px; }
+    .result-box { margin-top: 20px; text-align: left; background: #2a2a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #0d6efd; display: none; }
+    .result-item { margin-bottom: 8px; font-size: 15px; }
+    .result-item strong { color: #a0a0a0; }
+  </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>👮‍♂️ બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</h2>
-    <p class="subtitle">Devbhumi Dwarka (NNK)</p>
+  <h2>👮‍♂️ બંદોબસ્ત ડ્યુટી મેનેજમેન્ટ સિસ્ટમ</h2>
+  <p class="subtitle">Devbhumi Dwarka (NNK)</p>
 
-    <div class="search-box">
-        <label>🔍 બંદોબસ્ત પોઈન્ટ શોધો</label>
-        <input type="text" id="searchInput" placeholder="મોબાઈલ નંબર અથવા નામ લખો...">
-        <button onclick="searchData()">શોધો</button>
-    </div>
+  <div class="search-box">
+    <label style="display:block; margin-bottom: 8px; font-weight: bold;">🔍 બંદોબસ્ત પોઈન્ટ શોધો</label>
+    <input type="text" id="searchInput" placeholder="મોબાઈલ નંબર અથવા નામ લખો...">
+    <button onclick="searchData()">શોધો</button>
+  </div>
 
-    <div id="status">ડેટા કનેક્ટ થઈ રહ્યો છે...</div>
-    <div id="results"></div>
+  <div id="statusMsg"></div>
+
+  <div id="resultBox" class="result-box"></div>
 </div>
 
 <script>
-    // ⚠️ આ બે ઇન્વર્ટેડ કોમા વચ્ચે તમારી Apps Script લિંક પેસ્ટ કરો:
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwlAptANYqMvRIa613DfCQ9767DKcUjlJKeI5IqFaHTbKTujyLZNp_WmA_dT9tp32Y2/exec";
-                       
-    var headers = [];
-    var bandhobastData = [];
+  // ⚠️ અહીં તમારી સ્ટેપ-૨ માંથી મળેલી નવી Web App URL પેસ્ટ કરો
+  const API_URL = "https://script.google.com/macros/s/AKfycbxjJQO9IrLo-shaJ7bW9W6p_e-Fl0L905bc-1xNTnJ5Q578akpz3Cg5iptRsP3PKoTe/exec";
 
-    function loadSheetData() {
-        var statusDiv = document.getElementById('status');
-        fetch(scriptURL, { redirect: "follow" })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                if (data && data.length > 0) {
-                    headers = data[0]; 
-                    bandhobastData = data.slice(1); 
-                    statusDiv.style.color = '#28a745';
-                    statusDiv.innerText = "✅ ડેટા સફળતાપૂર્વક લોડ થઈ ગયો!";
-                } else {
-                    statusDiv.style.color = '#dc3545';
-                    statusDiv.innerText = "❌ શીટમાં કોઈ ડેટા મળ્યો નથી!";
-                }
-            })
-            .catch(function(error) {
-                console.error(error);
-                statusDiv.style.color = '#dc3545';
-                statusDiv.innerText = "❌ ડેટા લોડ કરવામાં ભૂલ થઈ!";
-            });
+  async function searchData() {
+    const input = document.getElementById("searchInput").value.trim().toLowerCase();
+    const statusMsg = document.getElementById("statusMsg");
+    const resultBox = document.getElementById("resultBox");
+
+    if (!input) {
+      alert("મહેરબાની કરીને નામ અથવા નંબર દાખલ કરો!");
+      return;
     }
 
-    function searchData() {
-        var query = document.getElementById('searchInput').value.trim().toLowerCase();
-        var resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
+    statusMsg.style.color = "#0d6efd";
+    statusMsg.innerHTML = "⏳ શોધી રહ્યું છે...";
+    resultBox.style.display = "none";
 
-        if (!query) {
-            resultsDiv.innerHTML = '<p style="color:#ff6b6b; text-align:center;">કૃપા કરીને નંબર કે નામ લખો!</p>';
-            return;
+    try {
+      const response = await fetch(API_URL);
+      const result = await response.json();
+
+      if (result.status === "success" && result.data && result.data.length > 1) {
+        const rows = result.data;
+        const headers = rows[0];
+        let found = false;
+
+        resultBox.innerHTML = "";
+
+        // બધી જ રો સર્ચ કરશે
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const rowText = row.join(" ").toLowerCase();
+
+          if (rowText.includes(input)) {
+            found = true;
+            let html = "<h4 style='margin-top:0; color:#0d6efd;'>✅ વિગત મળી:</h4>";
+            
+            headers.forEach((header, idx) => {
+              if(row[idx] !== undefined && row[idx] !== "") {
+                html += <div class="result-item"><strong>${header}:</strong> ${row[idx]}</div>;
+              }
+            });
+
+            resultBox.innerHTML += html + "<hr style='border-color:#444; margin:15px 0;'>";
+          }
         }
 
-        var filtered = bandhobastData.filter(function(row) {
-            return row.some(function(cell) {
-                return String(cell).toLowerCase().indexOf(query) !== -1;
-            });
-        });
-
-        if (filtered.length === 0) {
-            resultsDiv.innerHTML = '<p style="color:#ff6b6b; text-align:center;">કોઈ રેકોર્ડ મળ્યો નથી!</p>';
-            return;
+        if (found) {
+          statusMsg.innerHTML = "";
+          resultBox.style.display = "block";
+        } else {
+          statusMsg.style.color = "#ff4d4d";
+          statusMsg.innerHTML = "❌ કોઈ રેકોર્ડ મળ્યો નથી!";
         }
 
-        filtered.forEach(function(row) {
-            var itemHtml = '<div class="result-item">';
-            row.forEach(function(cell, index) {
-                if (cell !== undefined && cell !== null && String(cell).trim() !== '') {
-                    var headerName = headers[index] || ('Field ' + (index + 1));
-                    itemHtml += '<p><strong>' + headerName + ':</strong> ' + cell + '</p>';
-                }
-            });
-            itemHtml += '</div>';
-            resultsDiv.innerHTML += itemHtml;
-        });
+      } else {
+        statusMsg.style.color = "#ff4d4d";
+        statusMsg.innerHTML = "❌ શીટમાં ડેટા મળ્યો નથી અથવા શીટ ખાલી છે!";
+      }
+
+    } catch (error) {
+      console.error(error);
+      statusMsg.style.color = "#ff4d4d";
+      statusMsg.innerHTML = "❌ કનેક્શન એરર! કૃપા કરીને Apps Script ની URL ચકાસો.";
     }
-
-    window.onload = loadSheetData;
+  }
 </script>
 
 </body>
